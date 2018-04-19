@@ -25,6 +25,10 @@ class ExcelController extends Controller
 
         }
 
+
+
+
+
         $ext = $file_obj->getClientOriginalExtension();
         if (!in_array($ext, ['xls', 'xlsx'])) {
             $error = '请导入Excel格式文件！文件格式必须是xls、xlsx后缀的Excel格式的一种';
@@ -67,31 +71,31 @@ class ExcelController extends Controller
                 break;
             }
 
-            if ($row == 865) {
+            // if ($row == 865) {
                 # 拆分不同的产品
-                $product_name_array = explode("\n", $product_name);
-                foreach ($product_name_array as $name) {
-                    # 拆分数量
-                    $data_array = explode("包邮 * ",$name);
-                    $product_count = $data_array[1];
-                    $new_product_name = implode('包邮 * ', [$data_array[0], '1']);
-                    for ($x=1; $x<=$product_count; $x++) {
-                        ;
-                        $data_dict = [
-                            'order_id' => $order_id,
-                            'customer_name' => $customer_name,
-                            'phone' => $phone,
-                            'address' => $address,
-                            'zip_code' => $zip_code,
-                            'new_product_name' => $name,
+            $product_name_array = explode("\n", $product_name);
+            foreach ($product_name_array as $name) {
+                # 拆分数量
+                $data_array = explode("包邮 * ",$name);
+                $product_count = $data_array[1];
+                $new_product_name = implode('包邮 * ', [$data_array[0], '1']);
+                for ($x=1; $x<=$product_count; $x++) {
+                    ;
+                    $data_dict = [
+                        'order_id' => $order_id,
+                        'customer_name' => $customer_name,
+                        'phone' => $phone,
+                        'address' => $address,
+                        'zip_code' => $zip_code,
+                        'new_product_name' => $name,
 
-                        ];
+                    ];
 
-                        $new_data[] = $data_dict;
-                    }
+                    $new_data[] = $data_dict;
                 }
-
             }
+
+            // }
 
         }
 
