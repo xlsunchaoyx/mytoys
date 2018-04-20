@@ -96,7 +96,7 @@ class ExcelController extends Controller
         # 创建新的excel文件
         $file_name = $file_obj->getClientOriginalName();
 
-        $excelName = '新' . date('md') . $file_name;
+        $excelName = '拆分-' . date('md') . $file_name;
         $excelName = rawurlencode($excelName);
 
         Excel::create($excelName, function ($excel) use ($new_data) {
@@ -184,6 +184,7 @@ class ExcelController extends Controller
         $sheet     = $obj_phpexcel->getActiveSheet();
         $row_count = $sheet->getHighestRow();
 
+        $order_list = [];# 所有订单号ID，含重复
         $new_data = [];
 
         for ($row = 2; $row <= $row_count; $row++) {
@@ -204,32 +205,75 @@ class ExcelController extends Controller
                 break;
             }
 
-            for ($x=1; $x<=$product_count; $x++) {
-                $data_dict = [
-                    'new_order_id' => $new_order_id,
-                    'customer_name' => $customer_name,
-                    'phone' => $phone,
-                    'address' => $address,
-                    'zip_code' => $zip_code,
-                    'product_name' => $product_name,
-                    'order_id' => $order_id,
-                    'wuliu_id' => $wuliu_id,
-                ];
+            $data_dict = [
+                'new_order_id' => $new_order_id,
+                'customer_name' => $customer_name,
+                'phone' => $phone,
+                'address' => $address,
+                'zip_code' => $zip_code,
+                'product_name' => $product_name,
+                'order_id' => $order_id,
+                'wuliu_id' => $wuliu_id,
+            ];
 
-                $new_data[] = $data_dict;
-            }
+            $new_data[$order_id][] = $data_dict;
+            $order_list[] = $order_id;
+            
 
         }
 
+        $order_list_unique = array_unique($order_list);
+
+        $result = [];
+
+        foreach ($order_list_unique as $item) {
+            $record_list = $new_data[$item];
+            $pp_name = [];
+            $ww_wuliu_id = [];
+            $nn_new_order_id = [];
+            foreach ($record_list as $record) {
+                $pp_name[] = $record['product_name'];
+                $ww_wuliu_id[] = $record['wuliu_id'];
+                $nn_new_order_id[] = $record['new_order_id'];
+            }
+            $new_pp_name = array_unique($pp_name);
+            $new_pp_name = implode(',', $new_pp_name);
+
+            $new_ww_wuliu_id = array_unique($ww_wuliu_id);
+            $new_ww_wuliu_id = implode(',', $new_ww_wuliu_id);
+
+            $new_nn_new_order_id = array_unique($nn_new_order_id);
+            $new_nn_new_order_id = implode(',', $new_nn_new_order_id);
+            
+            
+            $result[] = [
+                'new_order_id' => $new_nn_new_order_id,
+                'customer_name' => $record_list[0]['customer_name'],
+                'phone' => $record_list[0]['phone'],
+                'address' => $record_list[0]['address'],
+                'zip_code' => $record_list[0]['zip_code'],
+                'product_name' => $new_pp_name,
+                'order_id' => $record_list[0]['order_id'],
+                'wuliu_id' => $new_ww_wuliu_id,
+            ];
+        }
+
+
+
+
+
         # 创建新的excel文件
         $file_name = $file_obj->getClientOriginalName();
+        $file_ext = $file_obj->getClientOriginalExtension();
+        $file_name = str_replace('.' . $file_ext, '', $file_name);
 
-        $excelName = '新' . date('md') . $file_name;
+
+        $excelName = '合并-' . date('md') . $file_name;
         $excelName = rawurlencode($excelName);
 
-        Excel::create($excelName, function ($excel) use ($new_data) {
-            $excel->sheet('sheet1', function ($sheet) use ($new_data) {
-                $sum = count($new_data);
+        Excel::create($excelName, function ($excel) use ($result) {
+            $excel->sheet('sheet1', function ($sheet) use ($result) {
+                $sum = count($result);
                 $sheet->setAutoSize(true);
                 $sheet->setColumnFormat(array('E' => '@'));
                 $sheet->row(1, ['订单号', '收货人', '收货手机', '收货详细地址(省 市 县 详细地址)', '收货地邮编', '货物描述', '数量', '备注', '物流单号', '物流订单号', '收货电话',]);
@@ -239,20 +283,19 @@ class ExcelController extends Controller
 
                 $index = 0;
                 for ($i = 2; $i < $sum + 2; $i++) {
-                    $obj = $new_data[$index];
-
-                    $new_order_name = str_pad($index+1, $count_len, '0', STR_PAD_LEFT);
+                    $obj = $result[$index];
+                    // var_dump($obj);
 
                     $sheet->row($i, array(
-                        '订单号' => $order_prefix . $new_order_name,
+                        '订单号' => $obj['order_id'],
                         '收货人' => $obj['customer_name'],
                         '收货手机' => $obj['phone'],
                         '收货详细地址(省 市 县 详细地址)' => $obj['address'],
                         '收货地邮编' => $obj['zip_code'],
-                        '货物描述' => $obj['new_product_name'],
+                        '货物描述' => $obj['product_name'],
                         '数量' => '',
-                        '备注' => $obj['order_id'],
-                        '物流单号' => '',
+                        '备注' => $obj['new_order_id'],
+                        '物流单号' => $obj['wuliu_id'],
                         '物流订单号' => '',
                         '收货电话' => '',
                     ), $explicit = true);
