@@ -57,19 +57,19 @@
 
         <div class="container">
             <div class="row">
-                <a class="btn btn-primary btn-lg active" href="/">拆分产品和数量</a>
-                <a class="btn btn-default btn-lg active" href="/step2">合并</a>
+                <a class="btn btn-default btn-lg active" href="/">拆分产品和数量</a>
+                <a class="btn btn-primary btn-lg active" href="/step2">合并</a>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-4"></div>
                 <div class="col-md-4">
 
-                    <form action="/" method="post" enctype="multipart/form-data">
+                    <form action="/step2" method="post" enctype="multipart/form-data">
                         {{ csrf_field() }}
                         <p class="bg-danger">{{ $error }}</p>
                         <div class="form-group">
-                            <label for="exampleInputFile">第一步</label>
+                            <label for="exampleInputFile" style="color:red;">第二步</label>
                             <input type="file" id="exampleInputFile" name='file'>
                             <p class="help-block"></p>
                         </div>
@@ -77,7 +77,7 @@
                     </form>
 
                 </div>
-
+                  
                 <div class="col-md-4"></div>
             </div>
         </div>

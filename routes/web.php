@@ -13,3 +13,8 @@
 
 Route::get('/', 'ExcelController@index');
 Route::post('/', 'ExcelController@store');
+
+Route::get('/step2', 'ExcelController@index2');
+Route::post('/step2', 'ExcelController@store2');
+
+
