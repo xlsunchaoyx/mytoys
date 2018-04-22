@@ -71,9 +71,9 @@ class ExcelController extends Controller
             $product_name_array = explode("\n", $product_name);
             foreach ($product_name_array as $name) {
                 # 拆分数量
-                $data_array = explode("包邮 * ",$name);
+                $data_array = explode("*",$name);
                 $product_count = $data_array[1];
-                $new_product_name = implode('包邮 * ', [$data_array[0], '1']);
+                $new_product_name = implode('*', [$data_array[0], '1']);
                 for ($x=1; $x<=$product_count; $x++) {
                     $data_dict = [
                         'order_id' => $order_id,
